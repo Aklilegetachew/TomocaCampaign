@@ -1,0 +1,37 @@
+# .NET Core
+bin/
+obj/
+
+# ASP.NET Core
+wwwroot/
+
+# User-specific files
+.vscode/
+.vs/
+.idea/
+
+# IDE/Editor
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+out/
+
+# NuGet packages
+*.nupkg
+.nuget/
+
+# Logs
+*.log
+
+# App settings files (sensitive data, you can add appsettings.Development.json for development)
+appsettings.json
+
+# User-specific environment files (optional)
+.env
+
+# Windows Installer files
+Thumbs.db
+ehthumbs.db

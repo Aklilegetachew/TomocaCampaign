@@ -1,0 +1,6 @@
+@TomocaCampaignAPI_HostAddress = http://localhost:5217
+
+GET {{TomocaCampaignAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
