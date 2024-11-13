@@ -44,8 +44,10 @@ namespace TomocaCampaignAPI.Controllers
             employee.Password = BCrypt.Net.BCrypt.HashPassword(employee.Password);
 
 
-            employee.ReferralCode = _referralCodeService.GenerateReferralCode(employee.Name, employee.EmployeeId);
+            employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
+           
             Console.WriteLine(employee.ReferralCode);
+
             employee.CreatedAt = DateTime.UtcNow;
             employee.UpdatedAt = DateTime.UtcNow;
             employee.ReferralCount = 0;
@@ -58,27 +60,27 @@ namespace TomocaCampaignAPI.Controllers
 
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<Employee>> loginEmployee([FromBody] LoginRequest loginRequest)
-        {
-            // Find the employee by username
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == loginRequest.Username);
+        //[HttpPost("login")]
+        //public async Task<ActionResult<Employee>> loginEmployee([FromBody] LoginRequest loginRequest)
+        //{
+        //    // Find the employee by username
+        //    var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == loginRequest.Username);
 
-            // If employee is not found or password doesn't match, return unauthorized
-            if (employee == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, employee.Password))
-            {
-                return Unauthorized("Invalid username or password.");
-            }
+        //    // If employee is not found or password doesn't match, return unauthorized
+        //    if (employee == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, employee.Password))
+        //    {
+        //        return Unauthorized("Invalid username or password.");
+        //    }
 
-            // Optionally, generate and return a token (e.g., JWT) if you’re implementing token-based authentication
-            return Ok(new
-            {
-                Message = "Login successful",
-                EmployeeId = employee.Id,
-                Username = employee.Username
-                // You could also include a token here, if implemented
-            });
-        }
+        //    // Optionally, generate and return a token (e.g., JWT) if you’re implementing token-based authentication
+        //    return Ok(new
+        //    {
+        //        Message = "Login successful",
+        //        EmployeeId = employee.Id,
+        //        Username = employee.Username
+        //        // You could also include a token here, if implemented
+        //    });
+        //}
 
 
 

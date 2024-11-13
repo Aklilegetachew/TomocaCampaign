@@ -20,6 +20,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReferralCodeService>();
+builder.Services.AddHttpClient<Bot>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30); // Adjust timeout as needed
+});
 
 var app = builder.Build();
 

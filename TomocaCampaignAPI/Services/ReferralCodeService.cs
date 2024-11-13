@@ -1,14 +1,22 @@
-﻿namespace TomocaCampaignAPI.Services
+﻿
+namespace TomocaCampaignAPI.Services
 {
     public class ReferralCodeService
     {
+        private readonly Bot _botService;
 
-        public string GenerateReferralCode(string name, string id)
+        public ReferralCodeService(Bot botService)
         {
-            // Use part of the name and a zero-padded ID for uniqueness
-            var namePart = name.Length >= 3 ? name.Substring(0, 3).ToUpper() : name.ToUpper();
-            var idPart = id; // Pads the ID with leading zeros, e.g., "0012"
-            return $"{namePart}-{idPart}";
+            _botService = botService;
+        }
+
+        public async Task<string> GenerateReferralCodeAsync(string name, string id)
+        {
+             var chatId = "@akgchannel";          
+            var invitationLink = await _botService.CreateInviteString(chatId, name);
+
+            return invitationLink;
+
         }
     }
 }
