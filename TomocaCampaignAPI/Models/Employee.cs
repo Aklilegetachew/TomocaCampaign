@@ -16,6 +16,9 @@ namespace TomocaCampaignAPI.Models
         public String EmployeeId { get; set; }
 
         [Required]
+        public String EmployeCode { get; set; }
+
+        [Required]
         public string Username { get; set; }
 
         [Required]

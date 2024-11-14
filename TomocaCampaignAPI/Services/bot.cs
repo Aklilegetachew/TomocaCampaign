@@ -28,24 +28,23 @@ namespace TomocaCampaignAPI.Services
                 name = name
             };
 
-            // Logging the start of the process
+          
             _logger.LogInformation("Processing bot for chatId: {ChatId} and name: {Name}", chatId, name);
 
             try
             {
                 var response = await _httpClient.PostAsJsonAsync("createChatInviteLink", requestBody);
 
-                // Check if the response is successful
+          
                 if (response.IsSuccessStatusCode)
                 {
-                    // Read the response content as string
+                   
                     var responseBody = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("Telegram API Response: {ResponseBody}", responseBody);
 
-                    // Optionally, deserialize it to check for specific fields
+                
                     var jsonResponse = JsonConvert.DeserializeObject<dynamic>(responseBody);
 
-                    // Log the invite link if the response contains it
                     if (jsonResponse?.ok == true)
                     {
                         //_logger.LogInformation("Invite link generated: {InviteLink}", jsonResponse.result.invite_link);
@@ -71,5 +70,39 @@ namespace TomocaCampaignAPI.Services
                 throw;
             }
         }
+
+        public async Task SetWebhookAsync(string webhookUrl)
+        {
+            string[] allowedUpdatesVab = new string[] { "message", "chat_member" };
+            var requestBody = new
+            {
+                url = webhookUrl,
+                allowed_updates = allowedUpdatesVab
+            };
+
+            _logger.LogInformation("Setting webhook to URL: {WebhookUrl}", webhookUrl);
+
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("setWebhook", requestBody);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Webhook set successfully. Response: {ResponseBody}", responseBody);
+                }
+                else
+                {
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Error setting webhook: {ErrorResponse}", errorResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Exception occurred while setting webhook: {ExceptionMessage}", ex.Message);
+            }
+        }
+
+
     }
 }

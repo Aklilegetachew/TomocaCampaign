@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TomocaCampaignAPI.Models;
 using TomocaCampaignAPI.Services;
-
+using TomocaCampaignAPI.DTOs;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace TomocaCampaignAPI.Controllers
 {
@@ -15,12 +19,13 @@ namespace TomocaCampaignAPI.Controllers
 
         private readonly AppDbContext _context;
         private readonly ReferralCodeService _referralCodeService;
+        private readonly IConfiguration _configuration;
 
-
-        public EmployeeController(AppDbContext context, ReferralCodeService referralCodeService) // Step 2: Inject and assign context
+        public EmployeeController(AppDbContext context, ReferralCodeService referralCodeService, IConfiguration configuration) // Step 2: Inject and assign context
         {
             _context = context;
             _referralCodeService = referralCodeService;
+            _configuration = configuration;
         }
 
         // GET: api/User
@@ -45,7 +50,9 @@ namespace TomocaCampaignAPI.Controllers
 
 
             employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
-           
+            employee.EmployeCode = await _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
+
+
             Console.WriteLine(employee.ReferralCode);
 
             employee.CreatedAt = DateTime.UtcNow;
@@ -60,31 +67,33 @@ namespace TomocaCampaignAPI.Controllers
 
         }
 
-        //[HttpPost("login")]
-        //public async Task<ActionResult<Employee>> loginEmployee([FromBody] LoginRequest loginRequest)
-        //{
-        //    // Find the employee by username
-        //    var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == loginRequest.Username);
+        [HttpPost("login")]
+        public async Task<ActionResult<Employee>> loginEmployee([FromBody] LoginRequest loginRequest)
+        {
 
-        //    // If employee is not found or password doesn't match, return unauthorized
-        //    if (employee == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, employee.Password))
-        //    {
-        //        return Unauthorized("Invalid username or password.");
-        //    }
-
-        //    // Optionally, generate and return a token (e.g., JWT) if you’re implementing token-based authentication
-        //    return Ok(new
-        //    {
-        //        Message = "Login successful",
-        //        EmployeeId = employee.Id,
-        //        Username = employee.Username
-        //        // You could also include a token here, if implemented
-        //    });
-        //}
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Username == loginRequest.Username);
 
 
+            if (employee == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, employee.Password))
+            {
+                return Unauthorized("Invalid username or password.");
+            }
 
-        // Additional method to retrieve employee by ID
+            var token = GenerateJwtToken(employee);
+
+            return Ok(new
+            {
+                Message = "Login successful",
+                Token = token,
+                EmployeeId = employee.Id,
+                Username = employee.Username
+            });
+         
+        }
+
+
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetEmployeeById(int id)
         {
@@ -94,6 +103,30 @@ namespace TomocaCampaignAPI.Controllers
                 return NotFound();
             }
             return employee;
+        }
+
+
+        private string GenerateJwtToken(Employee employee)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, employee.Username),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("EmployeeId", employee.Id.ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
