@@ -28,13 +28,7 @@ namespace TomocaCampaignAPI.Controllers
             _configuration = configuration;
         }
 
-        // GET: api/User
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployee()
-        {
-            return await _context.Employees.ToListAsync();
-        }
-
+      
         // Sign up endpoint
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp(Employee employee)
@@ -62,7 +56,7 @@ namespace TomocaCampaignAPI.Controllers
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = employee.Id }, employee);
+            return CreatedAtAction(nameof(GetEmployeeByIdApi), new { id = employee.Id }, employee);
 
 
         }
@@ -88,21 +82,79 @@ namespace TomocaCampaignAPI.Controllers
                 EmployeeId = employee.Id,
                 Username = employee.Username
             });
-         
+
         }
 
 
 
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployeeById(int id)
+        // 1. Get all employees
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetAllEmployees()
         {
-            var employee = await _context.Employees.FindAsync(id);
+            return await _context.Set<Employee>().ToListAsync();
+        }
+
+        // 2. Get employee by ID
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Employee>> GetEmployeeByIdApi(int id)
+        {
+            var employee = await _context.Set<Employee>().FindAsync(id);
+
             if (employee == null)
             {
                 return NotFound();
             }
+
             return employee;
+        }
+
+        // 3. Get all employees ordered by ReferralCount (big to small)
+        [HttpGet("order-by-referral")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesOrderedByReferralCount()
+        {
+            return await _context.Set<Employee>()
+                                 .OrderByDescending(e => e.ReferralCount)
+                                 .ToListAsync();
+        }
+
+        // 4. Get all employees ordered by TotalRevenue (big to small)
+        [HttpGet("order-by-revenue")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesOrderedByTotalRevenue()
+        {
+            return await _context.Set<Employee>()
+                                 .OrderByDescending(e => e.TotalRevenue)
+                                 .ToListAsync();
+        }
+
+
+        [HttpGet("total-revenue")]
+        public async Task<ActionResult<decimal>> GetTotalRevenue()
+        {
+            var totalRevenue = await _context.Set<Employee>().SumAsync(e => e.TotalRevenue);
+            return Ok(totalRevenue);
+        }
+
+        // 6. Get percentage contribution of each employee to the total revenue
+        [HttpGet("revenue-percentage")]
+        public async Task<ActionResult<IEnumerable<object>>> GetRevenuePercentage()
+        {
+            var employees = await _context.Set<Employee>().ToListAsync();
+            var totalRevenue = employees.Sum(e => e.TotalRevenue);
+
+            if (totalRevenue == 0)
+            {
+                return Ok(new { message = "Total revenue is zero; no percentages to calculate." });
+            }
+
+            var revenuePercentage = employees.Select(e => new
+            {
+                EmployeeId = e.EmployeeId,
+                Name = e.Name,
+                TotalRevenue = e.TotalRevenue,
+                ContributionPercentage = Math.Round((e.TotalRevenue / totalRevenue) * 100, 2) // Rounded to 2 decimal places
+            });
+
+            return Ok(revenuePercentage);
         }
 
 
@@ -128,5 +180,16 @@ namespace TomocaCampaignAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+    
+    
+    
+    
+    
+    
+    
+    
     }
+
+
+
 }
