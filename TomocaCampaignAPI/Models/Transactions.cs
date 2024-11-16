@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TomocaCampaignAPI.Models
 {
     public class Transactions
     {
-
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -14,18 +13,18 @@ namespace TomocaCampaignAPI.Models
         public string UserName { get; set; }
 
         [Required]
-        public String EmployeeName { get; set; }
+        public string EmployeeName { get; set; }
 
         [Required]
-        [ForeignKey("Employee")]
-        public String EmployeId { get; set; }
+        [ForeignKey(nameof(Employee))]
+        public int EmployeeDbId { get; set; } // Match the type of Employee primary key
 
         [Required]
-        [ForeignKey("User")]
-        public string UserID { get; set; }
+        [ForeignKey(nameof(User))]
+        public int UserDbId { get; set; } // Match the type of User primary key
 
         [Required]
-        public string transactionId { get; set; }
+        public string TransactionId { get; set; }
 
         [Required]
         public decimal TotalTransaction { get; set; }
@@ -35,8 +34,8 @@ namespace TomocaCampaignAPI.Models
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        // Navigation properties
         public Employee Employee { get; set; }
-        public Employee User { get; set; }
-
+        public User User { get; set; }
     }
 }

@@ -50,10 +50,10 @@ namespace TomocaCampaignAPI.Controllers
                 var transaction = new Transactions
                 {
                     UserName = $"{user.FirstName} {user.LastName}",
-                    EmployeeName = employee.Name, 
-                    EmployeId = employee.Id.ToString(),
-                    UserID = user.UserId,
-                    transactionId = trxId,
+                    EmployeeName = employee.Name,
+                    EmployeeDbId = employee.Id,
+                    UserDbId = user.Id,
+                    TransactionId = trxId,
                     TotalTransaction = transactionAmount,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -117,12 +117,12 @@ namespace TomocaCampaignAPI.Controllers
 
         // 3. Get transactions by User ID
         [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<Transactions>>> GetTransactionsByUserId(string userId)
+        public async Task<ActionResult<IEnumerable<Transactions>>> GetTransactionsByUserId(int userId)
         {
             var transactions = await _appDbContext.Transactions
                 .Include(t => t.Employee)
                 .Include(t => t.User)
-                .Where(t => t.UserID == userId)
+                .Where(t => t.UserDbId == userId)
                 .ToListAsync();
 
             if (!transactions.Any())
@@ -135,12 +135,12 @@ namespace TomocaCampaignAPI.Controllers
 
         // 4. Get transactions by Employee ID
         [HttpGet("employee/{employeeId}")]
-        public async Task<ActionResult<IEnumerable<Transactions>>> GetTransactionsByEmployeeId(string employeeId)
+        public async Task<ActionResult<IEnumerable<Transactions>>> GetTransactionsByEmployeeId(int employeeId)
         {
             var transactions = await _appDbContext.Transactions
                 .Include(t => t.Employee)
                 .Include(t => t.User)
-                .Where(t => t.EmployeId == employeeId)
+                .Where(t => t.EmployeeDbId == employeeId)
                 .ToListAsync();
 
             if (!transactions.Any())

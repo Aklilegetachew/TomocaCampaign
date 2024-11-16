@@ -4,16 +4,19 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TomocaCampaignAPI;
 using TomocaCampaignAPI.Services;
-
+using DotNetEnv;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load environment variables from the .env file
+Env.Load();
 
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING");
 // Register AppDbContext with MySQL connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+       connectionString,
         new MySqlServerVersion(new Version(8, 0, 23)) 
     )
 );
