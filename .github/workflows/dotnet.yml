@@ -22,7 +22,7 @@ jobs:
         run: dotnet publish -c Release -o ./publish
 
       - name: Copy Files to VPS
-        uses: appleboy/scp-action@v0.2.1
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{secrets.IP}}
           username: ${{secrets.USERNAME}}
