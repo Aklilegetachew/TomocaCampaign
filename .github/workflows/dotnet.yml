@@ -24,13 +24,16 @@ jobs:
       - name: Copy Files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{secrets.IP}}
-          username: ${{secrets.USERNAME}}
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: ./publish/*
           target: /var/www/aspnetapp/
 
-      - name: Restart App
+      - name: Restart App on VPS
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa root@your-server-ip \
-          "systemctl restart my-aspnet-app.service || echo 'No service to restart'"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.USERNAME }}@${{ secrets.IP }} \
+          "sudo systemctl restart my-aspnet-app.service || echo 'No service to restart'"
