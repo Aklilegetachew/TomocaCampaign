@@ -10,19 +10,19 @@ namespace TomocaCampaignAPI.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [Required]
-        public String EmployeeId { get; set; }
+        public required String EmployeeId { get; set; }
 
         [Required]
-        public String EmployeCode { get; set; }
+        public String? EmployeCode { get; set; }
 
         [Required]
-        public string Username { get; set; }
+        public required string Username { get; set; }
 
         [Required]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -30,7 +30,7 @@ namespace TomocaCampaignAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public string ReferralCode { get; set; }
+        public string? ReferralCode { get; set; }
 
         [Required]
         public int ReferralCount { get; set; }

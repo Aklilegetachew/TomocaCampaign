@@ -31,7 +31,7 @@ namespace TomocaCampaignAPI.Controllers
         {
             if (update.Message != null)
             {
-                var userId = update.Message.From.Id;
+                var userId = update.Message.From!.Id;
                 var firstName = update.Message.From.FirstName;
                 var lastName = update.Message.From.LastName; 
                 var username = update.Message.From.Username;
@@ -128,15 +128,18 @@ namespace TomocaCampaignAPI.Controllers
         {
             var groupedUsers = await _dbContext.Users
                 .GroupBy(u => u.EmployeeId)
-                .Select(g => new
-                {
-                    EmployeeId = g.Key,
-                    EmployeeName = g.FirstOrDefault().Employee.Name, 
-                    Users = g.ToList()
-                })
                 .ToListAsync();
 
-            return Ok(groupedUsers);
+          
+            var result = groupedUsers.Select(g => new
+            {
+                EmployeeId = g.Key,
+                EmployeeName = g.FirstOrDefault()?.Employee?.Name ?? "Unknown", 
+                Users = g.ToList()
+            }).ToList();
+
+           
+            return Ok(result);
         }
 
     }

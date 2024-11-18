@@ -8,16 +8,17 @@ namespace TomocaCampaignAPI.Services
 {
     public class Bot
     {
+        
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<Bot> _logger;
-
+      
         public Bot(HttpClient httpClient, IConfiguration configuration, ILogger<Bot> logger)
         {
             _logger = logger;
             _httpClient = httpClient;
             _configuration = configuration;
-            _httpClient.BaseAddress = new Uri(_configuration["ThirdPartyApi:TelegramBaseUrl"]);
+            //_httpClient.BaseAddress = new Uri(_configuration["ThirdPartyApi:TelegramBaseUrl"]);
         }
 
         public async Task<string> CreateInviteString(string chatId, string name)

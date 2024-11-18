@@ -19,7 +19,7 @@ namespace TomocaCampaignAPI.Services
 
         }
 
-        public async Task<string> GenerateEmployeeCode(string name, string id)
+        public string GenerateEmployeeCode(string name, string id)
         {
             
             var initials = string.Join("", name.Split(' ').Select(word => word[0])).ToUpper();

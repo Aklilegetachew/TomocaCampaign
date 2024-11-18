@@ -21,18 +21,29 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var jwtIssuer = Environment.GetEnvironmentVariable("Jwt_Issuer");
+        var jwtAudience = Environment.GetEnvironmentVariable("Jwt_Audience");
+        var jwtKey = Environment.GetEnvironmentVariable("Jwt_Key");
+
+        if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+        {
+            throw new ArgumentNullException("Jwt configuration is incomplete in the .env file.");
+        }
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
@@ -45,6 +56,16 @@ builder.Services.AddScoped<ReferralCodeService>();
 builder.Services.AddHttpClient<Bot>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30); 
+});
+
+builder.Services.AddHttpClient<Bot>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+
+
+    var telegramBaseUrl = Environment.GetEnvironmentVariable("TELEGRAM_BASE_URL") ?? "https://default.telegram.api";
+
+    client.BaseAddress = new Uri(telegramBaseUrl);
 });
 
 var app = builder.Build();
@@ -62,18 +83,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Register Bot service and configure HttpClient with the TelegramBaseUrl from the .env file
-builder.Services.AddHttpClient<Bot>(client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(30);
 
-    // Get the Telegram base URL from the environment variable
-    var telegramBaseUrl = Environment.GetEnvironmentVariable("TELEGRAM_BASE_URL");
-    client.BaseAddress = new Uri(telegramBaseUrl);
-});
+
 string webhookUrl = "https://faf8-196-188-123-14.ngrok-free.app/api/BotWebhook/";
 var bot = app.Services.GetRequiredService<Bot>();
-// Ensure the webhook is set up asynchronously
 await bot.SetWebhookAsync(webhookUrl);
 
 app.Run();

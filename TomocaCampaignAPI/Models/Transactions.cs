@@ -10,10 +10,10 @@ namespace TomocaCampaignAPI.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         [Required]
-        public string EmployeeName { get; set; }
+        public string? EmployeeName { get; set; }
 
         [Required]
         [ForeignKey(nameof(Employee))]
@@ -24,7 +24,7 @@ namespace TomocaCampaignAPI.Models
         public int UserDbId { get; set; } // Match the type of User primary key
 
         [Required]
-        public string TransactionId { get; set; }
+        public string? TransactionId { get; set; }
 
         [Required]
         public decimal TotalTransaction { get; set; }
@@ -35,7 +35,7 @@ namespace TomocaCampaignAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public Employee Employee { get; set; }
-        public User User { get; set; }
+        public Employee? Employee { get; set; }
+        public User? User { get; set; }
     }
 }

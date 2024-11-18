@@ -44,7 +44,7 @@ namespace TomocaCampaignAPI.Controllers
 
 
             employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
-            employee.EmployeCode = await _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
+            employee.EmployeCode =  _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
 
 
             Console.WriteLine(employee.ReferralCode);
@@ -160,19 +160,29 @@ namespace TomocaCampaignAPI.Controllers
 
         private string GenerateJwtToken(Employee employee)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            // Access environment variables through IConfiguration
+            var jwtKey = _configuration["Jwt:Key"];
+            var jwtIssuer = _configuration["Jwt:Issuer"];
+            var jwtAudience = _configuration["Jwt:Audience"];
+
+            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+            {
+                throw new ArgumentNullException("JWT configuration is incomplete.");
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, employee.Username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("EmployeeId", employee.Id.ToString())
-            };
+            new Claim(JwtRegisteredClaimNames.Sub, employee.Username),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("EmployeeId", employee.Id.ToString())
+        };
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: jwtIssuer,
+                audience: jwtAudience,
                 claims: claims,
                 expires: DateTime.Now.AddHours(1),
                 signingCredentials: creds
@@ -180,14 +190,14 @@ namespace TomocaCampaignAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
     }
 
 
