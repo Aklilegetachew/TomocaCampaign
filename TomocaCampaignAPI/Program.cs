@@ -62,10 +62,17 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Set the webhook on application startup
-var bot = app.Services.GetRequiredService<Bot>();
-string webhookUrl = "https://faf8-196-188-123-14.ngrok-free.app/api/BotWebhook/";
+// Register Bot service and configure HttpClient with the TelegramBaseUrl from the .env file
+builder.Services.AddHttpClient<Bot>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
 
+    // Get the Telegram base URL from the environment variable
+    var telegramBaseUrl = Environment.GetEnvironmentVariable("TELEGRAM_BASE_URL");
+    client.BaseAddress = new Uri(telegramBaseUrl);
+});
+string webhookUrl = "https://faf8-196-188-123-14.ngrok-free.app/api/BotWebhook/";
+var bot = app.Services.GetRequiredService<Bot>();
 // Ensure the webhook is set up asynchronously
 await bot.SetWebhookAsync(webhookUrl);
 
