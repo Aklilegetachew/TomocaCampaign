@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Reflection.Metadata;
 using TomocaCampaignAPI.DTOs;
 using TomocaCampaignAPI.Models;
@@ -26,6 +27,7 @@ namespace TomocaCampaignAPI.Controllers
 
             String UserID = userData.UserId;
             decimal transactionAmount = (decimal)userData.TotalAmount;
+            _logger.LogInformation(transactionAmount.ToString());
             try
             {
                
@@ -61,9 +63,9 @@ namespace TomocaCampaignAPI.Controllers
 
                 _appDbContext.Transactions.Add(transaction);
 
-                employee.TotalRevenue += transactionAmount; 
+                employee.TotalRevenue += transactionAmount;
+                user.MoneySpent += transactionAmount;
 
-           
                 await _appDbContext.SaveChangesAsync();
 
               

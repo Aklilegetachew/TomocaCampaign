@@ -26,8 +26,8 @@ namespace TomocaCampaignAPI.Models
         [Required]
         public string? TransactionId { get; set; }
 
-        [Required]
-        public decimal TotalTransaction { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalTransaction { get; set; } = 0.0M;
 
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

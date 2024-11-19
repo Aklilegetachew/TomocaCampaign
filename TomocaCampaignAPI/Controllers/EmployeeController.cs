@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using static System.Net.WebRequestMethods;
 
 namespace TomocaCampaignAPI.Controllers
 {
@@ -43,8 +44,10 @@ namespace TomocaCampaignAPI.Controllers
             employee.Password = BCrypt.Net.BCrypt.HashPassword(employee.Password);
 
 
-            employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
-            employee.EmployeCode =  _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
+            //employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
+            employee.ReferralCode = _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
+
+            employee.EmployeCode = $"http://t.me/Tomoca_bot?start={employee.ReferralCode}";
 
 
             Console.WriteLine(employee.ReferralCode);

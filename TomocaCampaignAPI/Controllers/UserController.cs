@@ -4,6 +4,10 @@ using TomocaCampaignAPI.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using TomocaCampaignAPI.DTOs;
+using TomocaCampaignAPI.Services;
+using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace TomocaCampaignAPI.Controllers
 {
@@ -12,10 +16,11 @@ namespace TomocaCampaignAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _dbContext;
-
-        public UserController(AppDbContext dbContext)
+        private readonly ILogger<UserController> _logger;
+        public UserController(AppDbContext dbContext, ILogger<UserController> logger)
         {
             _dbContext = dbContext;
+            _logger = logger;
         }
 
         //Get User: api/User
@@ -29,18 +34,32 @@ namespace TomocaCampaignAPI.Controllers
 
         public async Task<IActionResult> NewAddUser(string RefernceCode, [FromBody] TelegramUpdate update)
         {
+            _logger.LogInformation("Processing New User Sign");
+
+            if (RefernceCode == null || update == null)
+            {
+                
+                return NotFound("No refernce number sent and update sent");
+
+            }
+
             if (update.Message != null)
             {
                 var userId = update.Message.From!.Id;
                 var firstName = update.Message.From.FirstName;
-                var lastName = update.Message.From.LastName; 
+                var lastName = update.Message.From.LastName;
                 var username = update.Message.From.Username;
-
                
-                var empoyee = await _dbContext.Employees.FirstOrDefaultAsync(e => e.ReferralCode == RefernceCode);
+               
 
+                var empoyee = await _dbContext.Employees
+     .Where(e => e.ReferralCode!.Trim() == RefernceCode.Trim())
+     .FirstOrDefaultAsync();
+               
                 if (empoyee == null)
                 {
+                    _logger.LogInformation("No employee found with the provided referral code.");
+
                     return NotFound("No employee found with the provided referral code.");
                 }
 

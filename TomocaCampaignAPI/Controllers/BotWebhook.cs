@@ -16,7 +16,7 @@ namespace TomocaCampaignAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> HandleUpdate([FromBody] JObject update)
+        public  IActionResult HandleUpdate([FromBody] JObject update)
         {
             _logger.LogInformation("Received update: {Update}", update);
             

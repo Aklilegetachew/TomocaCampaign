@@ -30,12 +30,12 @@ namespace TomocaCampaignAPI.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
-        public string? ReferralCode { get; set; }
+        public required string? ReferralCode { get; set; }
 
         [Required]
         public int ReferralCount { get; set; }
 
-        [Required]
-        public decimal TotalRevenue { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalRevenue { get; set; } = 0.0M;
     }
 }
