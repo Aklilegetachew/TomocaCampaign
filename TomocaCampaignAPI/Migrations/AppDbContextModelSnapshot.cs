@@ -56,8 +56,12 @@ namespace TomocaCampaignAPI.Migrations
                     b.Property<int>("ReferralCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("RoleType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<decimal>("TotalRevenue")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -90,7 +94,7 @@ namespace TomocaCampaignAPI.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<decimal>("TotalTransaction")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("TransactionId")
                         .IsRequired()

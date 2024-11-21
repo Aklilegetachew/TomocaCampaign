@@ -47,6 +47,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000") // Update with your Next.js URL
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 
 
@@ -68,7 +78,7 @@ builder.Services.AddHttpClient<Bot>(client =>
     client.BaseAddress = new Uri(telegramBaseUrl);
 });
 
-builder.WebHost.UseUrls("http://localhost:9000/");
+//builder.WebHost.UseUrls("http://localhost:9000/");
 
 
 var app = builder.Build();
@@ -79,6 +89,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();  // Apply any pending migrations
 }
+app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
@@ -89,6 +100,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseCors("AllowNextJs");
 
 app.MapControllers();
 

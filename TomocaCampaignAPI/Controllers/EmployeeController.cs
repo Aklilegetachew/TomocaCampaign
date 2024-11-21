@@ -40,6 +40,7 @@ namespace TomocaCampaignAPI.Controllers
                 return BadRequest("User Already Exists");
             }
 
+            
 
             employee.Password = BCrypt.Net.BCrypt.HashPassword(employee.Password);
 
@@ -76,14 +77,24 @@ namespace TomocaCampaignAPI.Controllers
                 return Unauthorized("Invalid username or password.");
             }
 
-            var token = GenerateJwtToken(employee);
+            var tokenData = new
+            {
+                Id = employee.Id,
+                Username = employee.Username,
+                Name = employee.Name,
+                refernceCode = employee.ReferralCode,
+                referncelink = employee.ReferralCount,
+                revenu = employee.TotalRevenue,
+                Role = employee.RoleType,
+            };
+
+            var token = GenerateJwtToken(tokenData);
 
             return Ok(new
             {
                 Message = "Login successful",
                 Token = token,
-                EmployeeId = employee.Id,
-                Username = employee.Username
+              
             });
 
         }
@@ -161,7 +172,7 @@ namespace TomocaCampaignAPI.Controllers
         }
 
 
-        private string GenerateJwtToken(Employee employee)
+        private string GenerateJwtToken(dynamic tokenData)
         {
             // Access environment variables through IConfiguration
             var jwtKey = _configuration["Jwt:Key"];
@@ -178,22 +189,25 @@ namespace TomocaCampaignAPI.Controllers
 
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, employee.Username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("EmployeeId", employee.Id.ToString())
-        };
+        new Claim(JwtRegisteredClaimNames.Sub, tokenData.Username),
+        new Claim("EmployeeId", tokenData.Id.ToString()),
+        new Claim("Name", tokenData.Name),
+        new Claim("ReferenceCode", tokenData.refernceCode),
+        new Claim("ReferenceCount", tokenData.referncelink.ToString()),
+        new Claim("Revenue", tokenData.revenu.ToString()),
+        new Claim("Role", tokenData.Role ?? "User") // Default to "User" if null
+    };
 
             var token = new JwtSecurityToken(
                 issuer: jwtIssuer,
                 audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
 
 
 

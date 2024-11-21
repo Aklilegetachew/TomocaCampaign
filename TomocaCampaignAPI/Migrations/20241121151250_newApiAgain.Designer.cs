@@ -12,8 +12,8 @@ using TomocaCampaignAPI;
 namespace TomocaCampaignAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241114100956_EmployeCode")]
-    partial class EmployeCode
+    [Migration("20241121151250_newApiAgain")]
+    partial class newApiAgain
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,8 +59,12 @@ namespace TomocaCampaignAPI.Migrations
                     b.Property<int>("ReferralCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("RoleType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<decimal>("TotalRevenue")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -72,6 +76,50 @@ namespace TomocaCampaignAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("TomocaCampaignAPI.Models.Transactions", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("EmployeeDbId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal>("TotalTransaction")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserDbId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeDbId");
+
+                    b.HasIndex("UserDbId");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("TomocaCampaignAPI.Models.User", b =>
@@ -108,6 +156,25 @@ namespace TomocaCampaignAPI.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TomocaCampaignAPI.Models.Transactions", b =>
+                {
+                    b.HasOne("TomocaCampaignAPI.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeDbId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TomocaCampaignAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserDbId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TomocaCampaignAPI.Models.User", b =>

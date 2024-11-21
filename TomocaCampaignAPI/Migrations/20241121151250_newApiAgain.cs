@@ -5,7 +5,7 @@
 namespace TomocaCampaignAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationName : Migration
+    public partial class newApiAgain : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
