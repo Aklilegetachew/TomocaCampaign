@@ -30,9 +30,9 @@ namespace TomocaCampaignAPI.Controllers
             _logger.LogInformation(transactionAmount.ToString());
             try
             {
-               
+
                 var user = await _appDbContext.Users
-                    .Include(u => u.Employee) 
+                    .Include(u => u.Employee)
                     .FirstOrDefaultAsync(u => u.UserId == UserID);
 
                 if (user == null)
@@ -40,7 +40,7 @@ namespace TomocaCampaignAPI.Controllers
                     return NotFound($"No user found with UserId: {UserID}");
                 }
 
-               
+
                 var employee = user.Employee;
 
                 if (employee == null)
@@ -48,7 +48,7 @@ namespace TomocaCampaignAPI.Controllers
                     return NotFound($"No employee found for UserId: {UserID}");
                 }
 
-                
+
                 var transaction = new Transactions
                 {
                     UserName = $"{user.FirstName} {user.LastName}",
@@ -68,7 +68,7 @@ namespace TomocaCampaignAPI.Controllers
 
                 await _appDbContext.SaveChangesAsync();
 
-              
+
                 var response = new
                 {
                     Transaction = transaction,
@@ -77,15 +77,15 @@ namespace TomocaCampaignAPI.Controllers
 
                 return Ok(response);
 
-              
+
             }
             catch (Exception ex)
             {
-                
+
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-            
+
         }
 
         // 1. Get all transactions
@@ -183,5 +183,30 @@ namespace TomocaCampaignAPI.Controllers
 
             return Ok(transactions);
         }
+
+        [HttpGet("total-revenue-by-date")]
+        public async Task<ActionResult<object>> GetTotalRevenueByDate()
+        {
+           
+            var transactions = await _appDbContext.Set<Transactions>()
+                                              .ToListAsync();
+
+            
+            var totalRevenueByDate = transactions
+                .GroupBy(t => t.CreatedAt.ToString("MMM dd")) 
+                .Select(g => new
+                {
+                    Date = g.Key, 
+                    TotalRevenue = g.Sum(t => t.TotalTransaction) 
+                })
+                .ToList();
+
+        
+            var revenueDictionary = totalRevenueByDate.ToDictionary(x => x.Date, x => x.TotalRevenue);
+
+          
+            return Ok(revenueDictionary);
+        }
+
     }
 }

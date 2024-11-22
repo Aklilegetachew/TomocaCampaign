@@ -171,7 +171,47 @@ namespace TomocaCampaignAPI.Controllers
             return Ok(revenuePercentage);
         }
 
+        [HttpGet("total-revenue-and-subscribers")]
+        public async Task<ActionResult<object>> GetTotalRevenueAndSubscribers()
+        {
+            // Calculate the total revenue by summing the revenue of all subscribers
+            var totalRevenue = await _context.Set<Employee>().SumAsync(s => s.TotalRevenue);
 
+            // Get the total number of subscribers (or references, depending on your definition)
+            var totalSubscribers = await _context.Set<Employee>().SumAsync(s => s.ReferralCount);
+
+            // Return the response as an object containing both the total revenue and total subscribers count
+            return Ok(new
+            {
+                totalRevenue,
+                totalSubscribers
+            });
+        }
+
+        [HttpGet("employee-data")]
+        public async Task<ActionResult<List<object>>> GetEmployeeData()
+        {
+           
+            var employees = await _context.Set<Employee>()
+                .Select(e => new
+                {
+                    Name = e.Name,            
+                    Referrals = e.ReferralCount,  
+                    Revenue = e.TotalRevenue   
+                })
+                .ToListAsync();
+
+          
+            var employeeData = employees.Select(e => new
+            {
+                name = e.Name,
+                referrals = e.Referrals,
+                revenue = e.Revenue
+            }).ToList();
+
+           
+            return Ok(employeeData);
+        }
         private string GenerateJwtToken(dynamic tokenData)
         {
             // Access environment variables through IConfiguration
