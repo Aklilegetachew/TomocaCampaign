@@ -161,5 +161,20 @@ namespace TomocaCampaignAPI.Controllers
             return Ok(result);
         }
 
+        [HttpGet("by-employee/{employeeId}")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsersByEmployeeId(int employeeId)
+        {
+            var users = await _dbContext.Users
+                .Where(u => u.EmployeeId == employeeId)
+                .ToListAsync();
+
+            if (!users.Any())
+            {
+                return NotFound($"No users found for EmployeeId: {employeeId}");
+            }
+
+            return Ok(users);
+        }
+
     }
 }

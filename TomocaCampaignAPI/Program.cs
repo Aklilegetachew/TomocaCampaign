@@ -78,7 +78,7 @@ builder.Services.AddHttpClient<Bot>(client =>
     client.BaseAddress = new Uri(telegramBaseUrl);
 });
 
-builder.WebHost.UseUrls("http://localhost:9000/");
+//builder.WebHost.UseUrls("http://localhost:9000/");
 
 
 var app = builder.Build();
