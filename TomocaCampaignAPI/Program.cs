@@ -6,7 +6,6 @@ using TomocaCampaignAPI;
 using TomocaCampaignAPI.Services;
 using DotNetEnv;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from the .env file
@@ -16,11 +15,10 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_S
 // Register AppDbContext with MySQL connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
-       connectionString,
-        new MySqlServerVersion(new Version(8, 0, 23)) 
+        connectionString,
+        new MySqlServerVersion(new Version(8, 0, 23))
     )
 );
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -47,39 +45,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Configure CORS to allow all origins
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextJs", builder =>
+    options.AddPolicy("AllowAll", builder =>
     {
-        builder.WithOrigins("https://referral.tomocacloud.com") // Update with your Next.js URL
+        builder.AllowAnyOrigin()
                .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
+               .AllowAnyMethod();
     });
 });
+
 builder.Services.AddControllers();
-
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReferralCodeService>();
 builder.Services.AddHttpClient<Bot>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30); 
-});
-
-builder.Services.AddHttpClient<Bot>(client =>
-{
     client.Timeout = TimeSpan.FromSeconds(30);
-
-
     var telegramBaseUrl = Environment.GetEnvironmentVariable("TELEGRAM_BASE_URL") ?? "https://default.telegram.api";
-
     client.BaseAddress = new Uri(telegramBaseUrl);
 });
-
-//builder.WebHost.UseUrls("http://localhost:9000/");
-
 
 var app = builder.Build();
 
@@ -87,9 +73,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();  // Apply any pending migrations
+    dbContext.Database.Migrate(); // Apply any pending migrations
 }
-app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
@@ -99,12 +84,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAll"); // Apply the AllowAll CORS policy
+
 app.UseAuthorization();
-app.UseCors("AllowNextJs");
-
 app.MapControllers();
-
-
 
 string webhookUrl = "https://faf8-196-188-123-14.ngrok-free.app/api/BotWebhook/";
 var bot = app.Services.GetRequiredService<Bot>();
