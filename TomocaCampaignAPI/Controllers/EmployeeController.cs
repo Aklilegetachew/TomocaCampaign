@@ -40,6 +40,7 @@ namespace TomocaCampaignAPI.Controllers
                 return BadRequest("User Already Exists");
             }
 
+            
 
             employee.Password = BCrypt.Net.BCrypt.HashPassword(employee.Password);
 
@@ -76,14 +77,24 @@ namespace TomocaCampaignAPI.Controllers
                 return Unauthorized("Invalid username or password.");
             }
 
-            var token = GenerateJwtToken(employee);
+            var tokenData = new
+            {
+                Id = employee.Id,
+                Username = employee.Username,
+                Name = employee.Name,
+                refernceCode = employee.ReferralCode,
+                referncelink = employee.ReferralCount,
+                revenu = employee.TotalRevenue,
+                Role = employee.RoleType,
+            };
+
+            var token = GenerateJwtToken(tokenData);
 
             return Ok(new
             {
                 Message = "Login successful",
                 Token = token,
-                EmployeeId = employee.Id,
-                Username = employee.Username
+              
             });
 
         }
@@ -160,8 +171,48 @@ namespace TomocaCampaignAPI.Controllers
             return Ok(revenuePercentage);
         }
 
+        [HttpGet("total-revenue-and-subscribers")]
+        public async Task<ActionResult<object>> GetTotalRevenueAndSubscribers()
+        {
+            // Calculate the total revenue by summing the revenue of all subscribers
+            var totalRevenue = await _context.Set<Employee>().SumAsync(s => s.TotalRevenue);
 
-        private string GenerateJwtToken(Employee employee)
+            // Get the total number of subscribers (or references, depending on your definition)
+            var totalSubscribers = await _context.Set<Employee>().SumAsync(s => s.ReferralCount);
+
+            // Return the response as an object containing both the total revenue and total subscribers count
+            return Ok(new
+            {
+                totalRevenue,
+                totalSubscribers
+            });
+        }
+
+        [HttpGet("employee-data")]
+        public async Task<ActionResult<List<object>>> GetEmployeeData()
+        {
+           
+            var employees = await _context.Set<Employee>()
+                .Select(e => new
+                {
+                    Name = e.Name,            
+                    Referrals = e.ReferralCount,  
+                    Revenue = e.TotalRevenue   
+                })
+                .ToListAsync();
+
+          
+            var employeeData = employees.Select(e => new
+            {
+                name = e.Name,
+                referrals = e.Referrals,
+                revenue = e.Revenue
+            }).ToList();
+
+           
+            return Ok(employeeData);
+        }
+        private string GenerateJwtToken(dynamic tokenData)
         {
             // Access environment variables through IConfiguration
             var jwtKey = _configuration["Jwt:Key"];
@@ -178,22 +229,25 @@ namespace TomocaCampaignAPI.Controllers
 
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, employee.Username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("EmployeeId", employee.Id.ToString())
-        };
+        new Claim(JwtRegisteredClaimNames.Sub, tokenData.Username),
+        new Claim("EmployeeId", tokenData.Id.ToString()),
+        new Claim("Name", tokenData.Name),
+        new Claim("ReferenceCode", tokenData.refernceCode),
+        new Claim("ReferenceCount", tokenData.referncelink.ToString()),
+        new Claim("Revenue", tokenData.revenu.ToString()),
+        new Claim("Role", tokenData.Role ?? "User") // Default to "User" if null
+    };
 
             var token = new JwtSecurityToken(
                 issuer: jwtIssuer,
                 audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
 
 
 

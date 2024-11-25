@@ -47,6 +47,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", builder =>
+    {
+        builder.WithOrigins("https://referral.tomocacloud.com") // Update with your Next.js URL
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 
 
@@ -79,6 +89,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();  // Apply any pending migrations
 }
+app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
@@ -89,6 +100,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseCors("AllowNextJs");
 
 app.MapControllers();
 
