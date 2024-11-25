@@ -215,9 +215,13 @@ namespace TomocaCampaignAPI.Controllers
         private string GenerateJwtToken(dynamic tokenData)
         {
             // Access environment variables through IConfiguration
-            var jwtKey = _configuration["Jwt:Key"];
-            var jwtIssuer = _configuration["Jwt:Issuer"];
-            var jwtAudience = _configuration["Jwt:Audience"];
+            //var jwtKey = _configuration["Jwt:Key"];
+            //var jwtIssuer = _configuration["Jwt:Issuer"];
+            //var jwtAudience = _configuration["Jwt:Audience"];
+
+            var jwtKey = "MySuperSecretKey";
+            var jwtIssuer = "TomocaCompaign";
+            var jwtAudience = "TomocaCustomers";
 
             if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
             {
