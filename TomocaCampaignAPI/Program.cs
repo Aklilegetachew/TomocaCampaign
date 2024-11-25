@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 Env.Load();
 
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING");
+
 // Register AppDbContext with MySQL connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
@@ -45,14 +46,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Configure CORS to allow all origins
+// Configure CORS to allow requests from referral.tomocacloud.com
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowReferralApp", builder =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyHeader()
-               .AllowAnyMethod();
+        builder.WithOrigins("https://referral.tomocacloud.com") // Allow requests from this origin
+               .AllowAnyHeader() // Allow all headers
+               .AllowAnyMethod() // Allow all HTTP methods (GET, POST, etc.)
+               .AllowCredentials(); // Allow cookies if needed
     });
 });
 
@@ -76,6 +78,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate(); // Apply any pending migrations
 }
 
+// Configure middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -84,9 +87,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll"); // Apply the AllowAll CORS policy
+app.UseCors("AllowReferralApp"); // Apply the AllowReferralApp CORS policy
 
 app.UseAuthorization();
+
 app.MapControllers();
 
 string webhookUrl = "https://faf8-196-188-123-14.ngrok-free.app/api/BotWebhook/";
