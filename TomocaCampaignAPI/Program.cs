@@ -51,7 +51,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", builder =>
     {
-        builder.WithOrigins("*")
+        builder.WithOrigins("https://referral.tomocacloud.com")
                .AllowAnyHeader()
                .AllowAnyMethod();
     });
