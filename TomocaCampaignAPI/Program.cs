@@ -51,10 +51,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", builder =>
     {
-        builder.WithOrigins("*") // Update with your Next.js URL
+        builder.WithOrigins("*")
                .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
+               .AllowAnyMethod();
     });
 });
 builder.Services.AddControllers();
