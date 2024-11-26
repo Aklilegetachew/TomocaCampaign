@@ -168,9 +168,10 @@ namespace TomocaCampaignAPI.Controllers
                 .Where(u => u.EmployeeId == employeeId)
                 .ToListAsync();
 
+            // Return an empty array with 200 OK if no users are found
             if (!users.Any())
             {
-                return NotFound($"No users found for EmployeeId: {employeeId}");
+                return Ok(new List<User>()); // Return empty array
             }
 
             return Ok(users);

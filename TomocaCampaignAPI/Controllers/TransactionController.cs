@@ -145,9 +145,10 @@ namespace TomocaCampaignAPI.Controllers
                 .Where(t => t.EmployeeDbId == employeeId)
                 .ToListAsync();
 
+            // Return an empty array instead of NotFound
             if (!transactions.Any())
             {
-                return NotFound();
+                return Ok(new List<Transactions>()); // Empty data with 200 OK
             }
 
             return Ok(transactions);
