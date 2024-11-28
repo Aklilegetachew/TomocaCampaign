@@ -40,12 +40,18 @@ namespace TomocaCampaignAPI.Controllers
                 return BadRequest("User Already Exists");
             }
 
-            
+            var employeeCount = await _context.Employees.Where(e => e.RoleType == "employee")
+          .CountAsync();
+
+            if (employeeCount >= 40)
+            {
+                return BadRequest("The regestration is closed");
+            }
 
             employee.Password = BCrypt.Net.BCrypt.HashPassword(employee.Password);
 
 
-            //employee.ReferralCode = await _referralCodeService.GenerateReferralCodeAsync(employee.Name, employee.EmployeeId);
+           
             employee.ReferralCode = _referralCodeService.GenerateEmployeeCode(employee.Name, employee.EmployeeId);
 
             employee.EmployeCode = $"http://t.me/Tomoca_bot?start={employee.ReferralCode}";
@@ -138,6 +144,20 @@ namespace TomocaCampaignAPI.Controllers
             return await _context.Set<Employee>()
                                  .OrderByDescending(e => e.TotalRevenue)
                                  .ToListAsync();
+        }
+
+        [HttpGet("order-by-revenue-transaction")]
+        public async Task<ActionResult<IEnumerable<object>>> GetEmployeesOrderedByTotalRevenuTransaction()
+        {
+            var employeesWithTransactions = await _context.Employees
+                .Select(e => new
+                {
+                    Employee = e,
+                    TransactionCount = _context.Transactions.Count(t => t.EmployeeDbId == e.Id)
+                }).OrderByDescending(e => e.Employee.TotalRevenue)
+                .ToListAsync();
+
+            return Ok(employeesWithTransactions);
         }
 
 
