@@ -232,12 +232,70 @@ namespace TomocaCampaignAPI.Controllers
            
             return Ok(employeeData);
         }
+
+        [HttpPut("update-employee")]
+        public async Task<IActionResult> UpdateEmployee([FromBody] UpdateEmployeeDto updateDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Fetch the employee from the database
+            var employee = await _context.Employees.FindAsync(updateDto.Id);
+            if (employee == null)
+                return NotFound(new { Message = "Employee not found" });
+
+            // Update the fields from the DTO
+            employee.Name = updateDto.Name;
+            employee.EmployeeId = updateDto.EmployeeID;
+            employee.Username = updateDto.UserName;
+
+            // Update password only if newPassword is not empty
+            if (!string.IsNullOrWhiteSpace(updateDto.NewPassword))
+            {
+                if (updateDto.NewPassword != updateDto.ConfirmPassword)
+                {
+                    return BadRequest(new { Message = "Passwords do not match" });
+                }
+
+                employee.Password = BCrypt.Net.BCrypt.HashPassword(updateDto.NewPassword);
+            }
+
+            employee.UpdatedAt =  DateTime.UtcNow; // Update the timestamp
+
+            // Save changes to the database
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Employee updated successfully", Employee = employee });
+        }
+
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var employee = await _context.Employees.FindAsync(id);
+
+            if (employee == null)
+            {
+                return NotFound(new { Message = "Employee not found." });
+            }
+
+            try
+            {
+                _context.Employees.Remove(employee);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Employee and related data deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while deleting the employee.", Error = ex.Message });
+            }
+        }
+
         private string GenerateJwtToken(dynamic tokenData)
         {
-            // Access environment variables through IConfiguration
-            //var jwtKey = _configuration["Jwt:Key"];
-            //var jwtIssuer = _configuration["Jwt:Issuer"];
-            //var jwtAudience = _configuration["Jwt:Audience"];
+          
 
             var jwtKey = "MySuperSecretKey";
             var jwtIssuer = "TomocaCompaign";
