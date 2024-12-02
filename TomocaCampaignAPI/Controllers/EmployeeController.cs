@@ -293,6 +293,61 @@ namespace TomocaCampaignAPI.Controllers
             }
         }
 
+
+        [HttpGet("transactions/{employeeId}")]
+        public async Task<IActionResult> GetEmployeeDataWithUsersAndTransactions(int employeeId)
+        {
+            
+            var employee = await _context.Employees
+                .Where(e => e.Id == employeeId) 
+                .FirstOrDefaultAsync();
+
+            
+            if (employee == null)
+            {
+                return NotFound(new { Message = "Employee not found" });
+            }
+
+            
+            var users = await _context.Users
+                .Where(u => u.EmployeeId == employeeId) 
+                .ToListAsync();
+
+          
+            var userIds = users.Select(u => u.Id).ToList();
+            var transactions = await _context.Transactions
+                .Where(t => userIds.Contains(t.UserDbId)) 
+                .ToListAsync();
+
+          
+            var userTransactions = users.Select(user => new
+            {
+                user.UserId,
+                user.FirstName,
+                user.LastName,
+                user.MoneySpent,
+                Transactions = transactions
+                    .Where(t => t.UserDbId == user.Id) 
+                    .Select(t => new
+                    {
+                        t.TransactionId,
+                        t.TotalTransaction,
+                        t.CreatedAt
+                    })
+            });
+
+         
+            var result = new
+            {
+                EmployeeId = employee.Id,
+                EmployeeName = employee.Name,
+                Users = userTransactions
+            };
+
+         
+            return Ok(result);
+        }
+
         private string GenerateJwtToken(dynamic tokenData)
         {
           
